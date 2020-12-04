@@ -22,6 +22,8 @@
 #import "EXUpdatesManager.h"
 #import "EXUtil.h"
 
+#import <React/RCTAppearance.h>
+
 #import <EXSplashScreen/EXSplashScreenService.h>
 #import <React/RCTUtils.h>
 #import <UMCore/UMModuleRegistryProvider.h>
@@ -271,6 +273,7 @@ NS_ASSUME_NONNULL_BEGIN
     self.isBridgeAlreadyLoading = YES;
     dispatch_async(dispatch_get_main_queue(), ^{
       [self _overrideUserInterfaceStyleOf:self];
+      [self _overrideAppearanceModuleBehaviour];
       [self _enforceDesiredDeviceOrientation];
       [self _invalidateRecoveryTimer];
       [[EXKernel sharedInstance] logAnalyticsEvent:@"LOAD_EXPERIENCE" forAppRecord:self.appRecord];
@@ -608,6 +611,25 @@ NS_ASSUME_NONNULL_BEGIN
     [[UIDevice currentDevice] setValue:@(newOrientation) forKey:@"orientation"];
   }
   [UIViewController attemptRotationToDeviceOrientation];
+}
+
+#pragma mark - RCTAppearanceModule
+
+/**
+ * This function overrides behaviour of RCTAppearanceModule
+ * basing on 'userInterfaceStyle' option from the app manifest.
+ * It also defaults the RCTAppearanceModule to 'light'.
+ */
+- (void)_overrideAppearanceModuleBehaviour
+{
+  NSString *userInterfaceStyle = [self _readUserInterfaceStyleFromManifest:_appRecord.appLoader.manifest];
+  if (!userInterfaceStyle || [userInterfaceStyle isEqualToString:@"light"]) {
+    RCTOverrideAppearancePreference(@"light");
+  } else if ([userInterfaceStyle isEqualToString:@"dark"]) {
+    RCTOverrideAppearancePreference(@"dark");
+  } else if ([userInterfaceStyle isEqualToString:@"automatic"]) {
+    RCTOverrideAppearancePreference(nil);
+  }
 }
 
 #pragma mark - user interface style
