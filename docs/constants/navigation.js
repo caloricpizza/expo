@@ -42,6 +42,7 @@ const sections = [
       'iOS build process',
       'Advanced credentials configuration',
       'How to: configuration examples',
+      'Building on CI',
     ],
   },
   {
